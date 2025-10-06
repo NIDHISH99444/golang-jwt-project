@@ -1,0 +1,12 @@
+# Go build
+bin/
+*.exe
+*.test
+*.out
+
+# IDE
+.idea/
+.vscode/
+
+# Secrets
+.env
