@@ -29,7 +29,7 @@ func Authenticate() gin.HandlerFunc {
 		c.Set("email", claims.Email)
 		c.Set("first_name", claims.FirstName)
 		c.Set("last_name", claims.LastName)
-		c.Set("uid", claims.Uid)
+		c.Set("userid", claims.Uid)
 		c.Set("user_type", claims.UserType)
 
 		// 4️⃣ Continue to next middleware/handler
