@@ -51,7 +51,6 @@ func GenerateAllTokens(email string, firstNme string, lastName string, userType 
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(24 * time.Hour)),
-			// Optional: Issuer, Subject, Audience, ID...
 		},
 	}
 	var refreshToken string
@@ -73,7 +72,7 @@ func UpdateAllTokens(signedToken string, signedRefreshToken string, userId strin
 	var updateObj primitive.D
 
 	updateObj = append(updateObj, bson.E{"token", signedToken})
-	updateObj = append(updateObj, bson.E{"token", signedRefreshToken})
+	updateObj = append(updateObj, bson.E{"refresh_token", signedRefreshToken})
 	updated_at, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 	updateObj = append(updateObj, bson.E{"updated_at", updated_at})
 	upsert := true
