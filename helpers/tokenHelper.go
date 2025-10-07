@@ -10,7 +10,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/nidhish/golang-jwt-project/database"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -50,7 +49,7 @@ func GenerateAllTokens(email string, firstNme string, lastName string, userType 
 		Uid:       uid,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(now),
-			ExpiresAt: jwt.NewNumericDate(now.Add(24 * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(now.Add(7 * 24 * time.Hour)),
 		},
 	}
 	var refreshToken string
@@ -69,24 +68,26 @@ func UpdateAllTokens(signedToken string, signedRefreshToken string, userId strin
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	var updateObj primitive.D
 
-	updateObj = append(updateObj, bson.E{"token", signedToken})
-	updateObj = append(updateObj, bson.E{"refresh_token", signedRefreshToken})
-	updated_at, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-	updateObj = append(updateObj, bson.E{"updated_at", updated_at})
+	update := bson.M{
+		"$set": bson.M{
+			"token":        signedToken,
+			"refreshtoken": signedRefreshToken,
+			"updated_at":   time.Now().UTC(),
+		},
+	}
 	upsert := true
-	filter := bson.M{"user_id": userId}
+	filter := bson.M{"userid": userId}
 	opt := options.UpdateOptions{
 		Upsert: &upsert,
 	}
 
-	_, err := userCollection.UpdateOne(ctx, filter, bson.D{{"$set", updateObj}}, &opt)
+	res, err := userCollection.UpdateOne(ctx, filter, update, &opt)
 	if err != nil {
-		log.Panic(err)
+
 		return
 	}
-	return
+	log.Println("Tokens updated for user:", userId, "res", res.MatchedCount, res.ModifiedCount)
 }
 
 func ValidateToken(signedToken string) (claims *SignedDetails, msg string) {
