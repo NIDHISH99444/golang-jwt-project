@@ -95,7 +95,7 @@ func GetUser() gin.HandlerFunc {
 		}
 		var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 		var user models.User
-		userCollection.FindOne(ctx, bson.M{"userid": userId}).Decode(&user)
+		err = userCollection.FindOne(ctx, bson.M{"userid": userId}).Decode(&user)
 		defer cancel()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -142,9 +142,9 @@ func SignUp() gin.HandlerFunc {
 		user.UpdatedAt, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 		user.ID = primitive.NewObjectID()
 		user.UserId = user.ID.Hex()
-		//token, refreshToken, _ := helpers.GenerateAllTokens(*user.Email, *user.FirstName, *user.LastName, *user.UserType, user.UserId)
-		//user.Token = &token
-		//user.RefreshToken = &refreshToken
+		token, refreshToken, _ := helpers.GenerateAllTokens(*user.Email, *user.FirstName, *user.LastName, *user.UserType, user.UserId)
+		user.Token = &token
+		user.RefreshToken = &refreshToken
 
 		resultInsertionNumber, insertErr := userCollection.InsertOne(ctx, user)
 		if insertErr != nil {
